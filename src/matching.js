@@ -16,7 +16,8 @@ async function startSearch(api, userId, lang = 'id') {
         return;
     }
     if (db.getActiveSession(userId)) {
-        await api.sendMessage(userId, t('already_in_chat', lang));
+        await api.sendMessage(userId, t('already_in_chat', lang))
+            .catch(err => console.error('[API Error in handleSearchQueue]', err.message));
         return;
     }
 
@@ -28,7 +29,8 @@ async function startSearch(api, userId, lang = 'id') {
 
     db.addQueue(userId, genderFilter, priority);
 
-    await api.sendMessage(userId, t('searching', lang), { reply_markup: getIdleKeyboard(lang) });
+    await api.sendMessage(userId, t('searching', lang), { reply_markup: getIdleKeyboard(lang) })
+        .catch(err => console.error('[API Error in startSearch]', err.message));
     await runMatchmaking(api);
 }
 
@@ -76,10 +78,12 @@ async function runMatchmaking(api) {
 
             // VIP badge notification
             if (aPlan === 'vip') {
-                await api.sendMessage(b.user_id, t('partner_vip', bLang), { parse_mode: 'HTML' });
+                await api.sendMessage(b.user_id, t('partner_vip', bLang), { parse_mode: 'HTML' })
+                    .catch(err => console.error('[API Error VIP b]', err.message));
             }
             if (bPlan === 'vip') {
-                await api.sendMessage(a.user_id, t('partner_vip', aLang), { parse_mode: 'HTML' });
+                await api.sendMessage(a.user_id, t('partner_vip', aLang), { parse_mode: 'HTML' })
+                    .catch(err => console.error('[API Error VIP a]', err.message));
             }
 
             await Promise.all([
@@ -87,12 +91,12 @@ async function runMatchmaking(api) {
                     a.user_id,
                     t('partner_found', aLang, { bot_username: config.BOT_USERNAME }),
                     { parse_mode: 'HTML', reply_markup: getChatKeyboard(aLang) }
-                ),
+                ).catch(err => console.error('[API Error match a]', err.message)),
                 api.sendMessage(
                     b.user_id,
                     t('partner_found', bLang, { bot_username: config.BOT_USERNAME }),
                     { parse_mode: 'HTML', reply_markup: getChatKeyboard(bLang) }
-                ),
+                ).catch(err => console.error('[API Error match b]', err.message)),
             ]);
 
             break;
@@ -107,7 +111,8 @@ async function runMatchmaking(api) {
 async function endChat(api, userId, lang = 'id', showFeedback = true) {
     const session = db.getActiveSession(userId);
     if (!session) {
-        await api.sendMessage(userId, t('not_in_chat', lang));
+        await api.sendMessage(userId, t('not_in_chat', lang))
+            .catch(err => console.error('[API Error not_in_chat]', err.message));
         return null;
     }
 
@@ -118,7 +123,8 @@ async function endChat(api, userId, lang = 'id', showFeedback = true) {
 
     db.endSession(session.id, userId);
 
-    await api.sendMessage(userId, t('chat_stopped', lang), { reply_markup: getIdleKeyboard(lang) });
+    await api.sendMessage(userId, t('chat_stopped', lang), { reply_markup: getIdleKeyboard(lang) })
+        .catch(err => console.error('[API Error chat_stopped]', err.message));
 
     // Ad for free users — shown after chat ends
     const userPlan = db.getSubscriptionPlan(userId);
@@ -127,14 +133,14 @@ async function endChat(api, userId, lang = 'id', showFeedback = true) {
             userId,
             `📢 <i>Nikmati obrolan tanpa iklan, filter gender, dan prioritas pencarian.\nGunakan /pay untuk berlangganan Premium.</i>`,
             { parse_mode: 'HTML' }
-        );
+        ).catch(err => console.error('[API Error ad]', err.message));
     }
 
     await api.sendMessage(
         partnerId,
         t('partner_left', partnerLang, { bot_username: config.BOT_USERNAME }),
         { parse_mode: 'HTML', reply_markup: getIdleKeyboard(partnerLang) }
-    );
+    ).catch(err => console.error('[API Error partner_left]', err.message));
 
     // Ad for the partner too (if free)
     const partnerPlan = db.getSubscriptionPlan(partnerId);
@@ -143,7 +149,7 @@ async function endChat(api, userId, lang = 'id', showFeedback = true) {
             partnerId,
             `📢 <i>Nikmati obrolan tanpa iklan, filter gender, dan prioritas pencarian.\nGunakan /pay untuk berlangganan Premium.</i>`,
             { parse_mode: 'HTML' }
-        );
+        ).catch(err => console.error('[API Error ad partner]', err.message));
     }
 
     if (showFeedback && _showFeedbackPrompt) {

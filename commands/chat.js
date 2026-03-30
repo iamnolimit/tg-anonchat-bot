@@ -10,11 +10,11 @@ async function handleNext(ctx) {
     if (db.getActiveSession(userId)) {
         await endChat(ctx.api, userId, lang, true);
         setTimeout(async () => {
-            await startSearch(ctx.api, userId, lang);
+            await startSearch(ctx.api, userId, lang).catch(e => console.error('[Error in Next setTimeout]', e.message));
         }, 1200);
     } else {
         db.removeQueue(userId); // clear stale queue entry if any
-        await startSearch(ctx.api, userId, lang);
+        await startSearch(ctx.api, userId, lang).catch(e => console.error('[Error in Next]', e.message));
     }
 }
 
