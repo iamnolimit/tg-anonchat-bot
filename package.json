@@ -1,0 +1,21 @@
+{
+  "name": "tg-anonchat-bot",
+  "version": "2.0.0",
+  "description": "Telegram Anonymous Chat Bot (grammY)",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "node --watch src/bot.js"
+  },
+  "dependencies": {
+    "@grammyjs/runner": "^2.0.3",
+    "adm-zip": "^0.5.16",
+    "better-sqlite3": "^9.4.3",
+    "dotenv": "^16.4.5",
+    "grammy": "^1.30.0",
+    "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains BOT_TOKEN, ADMIN_IDS, etc.)
+.env
+
+# Database & backups
+db/data.db
+db/data.db-shm
+db/data.db-wal
+db/backups/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
