@@ -297,7 +297,7 @@ async function handleAdminCallback(ctx) {
 
     if (data === 'adm_vip_text') {
         ctx.session.adminAction = 'vip_text';
-        return ctx.editMessageText('📝 Kirim teks / caption untuk pesan VIP:', { reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
+        return ctx.editMessageText('📝 Kirim teks / caption untuk pesan VIP.\n\nSistem mendukung <b>Format HTML</b>. Kamu bebas menggunakan tag-tag berikut secara langsung:\n<code>&lt;b&gt;teks tebal&lt;/b&gt;</code> -> <b>tebal</b>\n<code>&lt;i&gt;teks miring&lt;/i&gt;</code> -> <i>miring</i>\n<code>&lt;u&gt;garis bawah&lt;/u&gt;</code> -> <u>garis bawah</u>\n<code>&lt;code&gt;teks mono&lt;/code&gt;</code> -> <code>mono</code>\n\nContoh:\nIni adalah fitur &lt;b&gt;Super VIP&lt;/b&gt;!', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
     }
 
     if (data === 'adm_vip_btn') {
