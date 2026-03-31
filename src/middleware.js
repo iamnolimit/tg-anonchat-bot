@@ -106,9 +106,16 @@ async function checkFsub(api, userId, lang = 'id') {
     }
     kb.text(t('fsub_check_btn', lang), 'fsub_check');
 
+    let fsubText = db.getSetting('fsub_text');
+    if (!fsubText) {
+        // Fallback to default
+        fsubText = t('fsub_required', lang, { channels: '{channels}' });
+    }
+    fsubText = fsubText.replace('{channels}', channelList);
+
     await api.sendMessage(
         userId,
-        t('fsub_required', lang, { channels: channelList }),
+        fsubText,
         { parse_mode: 'HTML', reply_markup: kb }
     );
     return false;

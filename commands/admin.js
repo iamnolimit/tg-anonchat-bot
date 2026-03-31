@@ -90,6 +90,7 @@ async function handleAdminCallback(ctx) {
             [{ text: fsubEnabled ? '🔴 Nonaktifkan' : '🟢 Aktifkan', callback_data: 'adm_fsub_toggle' }],
             [{ text: '➕ Tambah Channel', callback_data: 'adm_fsub_add' }],
             [{ text: '➖ Hapus Channel', callback_data: 'adm_fsub_remove' }],
+            [{ text: '📝 Ubah Teks FSUB', callback_data: 'adm_fsub_text' }],
             [{ text: '⬅️ Kembali', callback_data: 'adm_back' }],
         ]);
         return ctx.editMessageText(text, { parse_mode: 'HTML', reply_markup: kb });
@@ -129,6 +130,15 @@ async function handleAdminCallback(ctx) {
         await ctx.answerCallbackQuery(`✅ Channel dihapus.`);
         ctx.callbackQuery.data = 'adm_fsub_remove';
         return handleAdminCallback(ctx);
+    }
+
+    if (data === 'adm_fsub_text') {
+        ctx.session.adminAction = 'fsub_text';
+        const kb = buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_fsub' }]]);
+        return ctx.editMessageText(
+            '📝 Kirim teks baru untuk peringatan FSUB.\n\nGunakan <code>{channels}</code> sebagai tempat di mana daftar channel akan ditampilkan.\n\n📝 <i>Teks saat ini:</i>\n' + escapeHtml(db.getSetting('fsub_text') || '(Menggunakan teks default sistem)'),
+            { parse_mode: 'HTML', reply_markup: kb }
+        );
     }
 
     // ─── MEDIA LOG ──────────────────────────────────────────────────────────
@@ -284,6 +294,13 @@ async function handleAdminInput(ctx) {
         } catch (err) {
             await ctx.reply(`❌ Gagal: ${err.message}\n\nPastikan bot sudah admin di channel.`);
         }
+        return true;
+    }
+
+    if (action === 'fsub_text') {
+        if (!ctx.message.text) return true;
+        db.setSetting('fsub_text', ctx.message.text);
+        await ctx.reply('✅ <b>Teks FSUB berhasil diubah!</b>', { parse_mode: 'HTML' });
         return true;
     }
 
