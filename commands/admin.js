@@ -21,6 +21,9 @@ async function handleAdmin(ctx) {
 }
 
 async function sendAdminPanel(ctx, isEdit = false) {
+    const paymentEnabled = db.getSetting('payment_enabled') !== '0';
+    const maintenanceEnabled = db.getSetting('maintenance_mode') === '1';
+
     const kb = buildKeyboard([
         [
             { text: '📊 Statistik', callback_data: 'adm_stats' },
@@ -36,10 +39,10 @@ async function sendAdminPanel(ctx, isEdit = false) {
         ],
         [
             { text: '🔨 Ban/Unban', callback_data: 'adm_banmenu' },
-            { text: '💰 Fitur Premium', callback_data: 'adm_payment_toggle' },
+            { text: `💰 Premium: ${paymentEnabled ? '✅' : '❌'}`, callback_data: 'adm_payment_toggle' },
         ],
         [
-            { text: '🔧 Maintenance', callback_data: 'adm_maintenance' },
+            { text: `🔧 Maint: ${maintenanceEnabled ? '✅' : '❌'}`, callback_data: 'adm_maintenance' },
             { text: '🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
         ]
     ]);
