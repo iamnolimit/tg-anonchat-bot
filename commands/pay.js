@@ -3,6 +3,10 @@ const { t, buildKeyboard, formatDate, addDays } = require('../src/utils');
 const config = require('../config');
 
 async function handlePay(ctx) {
+    if (db.getSetting('payment_enabled') === '0') {
+        const lang = db.getUser(ctx.from.id)?.language || 'id';
+        return ctx.reply(lang === 'id' ? '✅ Fitur premium saat ini digratiskan untuk semua pengguna!' : '✅ Premium features are currently free for everyone!');
+    }
     const userId = ctx.from.id;
     const lang = db.getUser(userId)?.language || 'id';
 
@@ -28,6 +32,10 @@ async function handlePay(ctx) {
 }
 
 async function handleVip(ctx) {
+    if (db.getSetting('payment_enabled') === '0') {
+        const lang = db.getUser(ctx.from.id)?.language || 'id';
+        return ctx.reply(lang === 'id' ? '✅ Fitur premium dan VIP saat ini digratiskan!' : '✅ Premium features are currently free!');
+    }
     const userId = ctx.from.id;
     const lang = db.getUser(userId)?.language || 'id';
     await sendVipMenu(ctx, lang, false);

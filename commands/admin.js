@@ -36,9 +36,12 @@ async function sendAdminPanel(ctx, isEdit = false) {
         ],
         [
             { text: '🔨 Ban/Unban', callback_data: 'adm_banmenu' },
-            { text: '🔧 Maintenance', callback_data: 'adm_maintenance' },
+            { text: '💰 Fitur Premium', callback_data: 'adm_payment_toggle' },
         ],
-        [{ text: '🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }]
+        [
+            { text: '🔧 Maintenance', callback_data: 'adm_maintenance' },
+            { text: '🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
+        ]
     ]);
 
     const text = '🛠 <b>Admin Panel</b>';
@@ -238,6 +241,15 @@ async function handleAdminCallback(ctx) {
         const current = db.getSetting('maintenance_mode') === '1';
         db.setSetting('maintenance_mode', current ? '0' : '1');
         await ctx.answerCallbackQuery(`Maintenance ${!current ? 'Diaktifkan' : 'Dinonaktifkan'}`);
+        return sendAdminPanel(ctx, true);
+    }
+
+    // ─── PAYMENT TOGGLE ──────────────────────────────────────────────────────
+
+    if (data === 'adm_payment_toggle') {
+        const current = db.getSetting('payment_enabled') !== '0'; // default true
+        db.setSetting('payment_enabled', current ? '0' : '1');
+        await ctx.answerCallbackQuery(`Fitur Premium ${!current ? 'Diaktifkan' : 'Dinonaktifkan'}`);
         return sendAdminPanel(ctx, true);
     }
 

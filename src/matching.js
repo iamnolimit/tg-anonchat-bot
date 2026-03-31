@@ -10,7 +10,7 @@ function setFeedbackPrompt(fn) { _showFeedbackPrompt = fn; }
  * Add user to search queue and attempt a match.
  * @param {import('grammy').Api} api - grammY Api object (ctx.api or bot.api)
  */
-async function startSearch(api, userId, lang = 'id') {
+async function startSearch(api, userId, lang = 'id', overrideFilter = null) {
     if (db.isInQueue(userId)) {
         await api.sendMessage(userId, t('already_searching', lang), { reply_markup: getIdleKeyboard(lang) });
         return;
@@ -23,9 +23,13 @@ async function startSearch(api, userId, lang = 'id') {
 
     const user = db.getUser(userId);
     const plan = db.getSubscriptionPlan(userId);
+    const paymentEnabled = db.getSetting('payment_enabled') !== '0';
     const priority = plan === 'vip' ? 2 : plan === 'premium' ? 1 : 0;
-    const genderFilter =
-        plan !== 'free' && user?.gender && user.gender !== 'any' ? user.gender : 'any';
+
+    let genderFilter = 'any';
+    if (plan !== 'free' || !paymentEnabled) {
+        genderFilter = overrideFilter || 'any';
+    }
 
     db.addQueue(userId, genderFilter, priority);
 

@@ -135,6 +135,17 @@ bot.callbackQuery('set_lang', handleLangMenu);
 bot.callbackQuery(/^lang_(id|en)$/, handleLangSet);
 bot.callbackQuery('settings_done', handleSettingsDone);
 
+// Gender Search (Filter Partner)
+bot.callbackQuery(/^search_gender_(any|male|female)$/, async (ctx) => {
+    const filter = ctx.match[1];
+    const userId = ctx.from.id;
+    const lang = db.getUser(userId)?.language || 'id';
+    await ctx.answerCallbackQuery();
+    await ctx.deleteMessage().catch(() => { });
+    const { startSearch } = require('../src/matching');
+    await startSearch(ctx.api, userId, lang, filter);
+});
+
 // Payment
 bot.callbackQuery(/^buy_premium_(1w|1m|3m)$/, handleBuyPremium);
 bot.callbackQuery('buy_vip', handleBuyVip);
@@ -173,15 +184,16 @@ bot.on('message', async (ctx) => {
     }
     if (text === '🚻 Cari Berdasarkan Gender' || text === '🚻 Search by Gender') {
         const plan = db.getSubscriptionPlan(userId);
-        if (plan === 'free') {
+        const paymentEnabled = db.getSetting('payment_enabled') !== '0';
+        if (plan === 'free' && paymentEnabled) {
             const { handlePay } = require('../commands/pay');
             return handlePay(ctx);
         } else {
             const { buildKeyboard } = require('./utils');
             const kb = buildKeyboard([[
-                { text: lang === 'id' ? '👥 Semua' : '👥 Any', callback_data: 'gender_any' },
-                { text: lang === 'id' ? '👨 Pria' : '👨 Male', callback_data: 'gender_male' },
-                { text: lang === 'id' ? '👩 Wanita' : '👩 Female', callback_data: 'gender_female' },
+                { text: lang === 'id' ? '👥 Semua' : '👥 Any', callback_data: 'search_gender_any' },
+                { text: lang === 'id' ? '👨 Pria' : '👨 Male', callback_data: 'search_gender_male' },
+                { text: lang === 'id' ? '👩 Wanita' : '👩 Female', callback_data: 'search_gender_female' },
             ]]);
             return ctx.reply(
                 lang === 'id' ? '🚻 Pilih gender pasangan yang dicari:' : '🚻 Select partner gender:',

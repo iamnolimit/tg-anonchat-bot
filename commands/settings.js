@@ -24,10 +24,8 @@ async function sendSettingsMenu(ctx, isEdit = false) {
     const ageLabel = user?.age ? String(user.age) : (lang === 'id' ? 'Belum diset' : 'Not set');
     const langLabel = lang === 'id' ? '🇮🇩 Indonesia' : '🇬🇧 English';
 
-    const genderRow =
-        plan !== 'free'
-            ? [{ text: t('settings_gender', lang, { value: genderLabel }), callback_data: 'set_gender' }]
-            : [{ text: `🔒 ${lang === 'id' ? 'Filter Gender (Premium)' : 'Gender Filter (Premium)'}`, callback_data: 'set_gender_locked' }];
+    const paymentEnabled = db.getSetting('payment_enabled') !== '0';
+    const genderRow = [{ text: t('settings_gender', lang, { value: genderLabel }), callback_data: 'set_gender' }];
 
     const kb = buildKeyboard([
         genderRow,
@@ -57,11 +55,8 @@ async function handleGenderMenu(ctx) {
     const userId = ctx.from.id;
     const lang = db.getUser(userId)?.language || 'id';
     const plan = db.getSubscriptionPlan(userId);
+    const paymentEnabled = db.getSetting('payment_enabled') !== '0';
     await ctx.answerCallbackQuery();
-    if (plan === 'free') {
-        await ctx.editMessageText(t('settings_gender_locked', lang), { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'settings_back' }]]) });
-        return;
-    }
     const kb = buildKeyboard([[
         { text: lang === 'id' ? '👥 Semua' : '👥 Any', callback_data: 'gender_any' },
         { text: lang === 'id' ? '👨 Pria' : '👨 Male', callback_data: 'gender_male' },
