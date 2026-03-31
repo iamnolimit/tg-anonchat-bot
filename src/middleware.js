@@ -74,7 +74,7 @@ async function rateLimiterMiddleware(ctx, next) {
  * Check FSUB for a specific user — returns true if passed.
  * Used inside command handlers (not as middleware) because it needs the bot instance.
  */
-async function checkFsub(bot, userId, lang = 'id') {
+async function checkFsub(api, userId, lang = 'id') {
     const fsubEnabled = db.getSetting('fsub_enabled') === '1';
     if (!fsubEnabled) return true;
 
@@ -84,7 +84,7 @@ async function checkFsub(bot, userId, lang = 'id') {
     const notJoined = [];
     for (const ch of channels) {
         try {
-            const member = await bot.api.getChatMember(ch.chat_id, userId);
+            const member = await api.getChatMember(ch.chat_id, userId);
             if (!['member', 'administrator', 'creator'].includes(member.status)) {
                 notJoined.push(ch);
             }
@@ -106,7 +106,7 @@ async function checkFsub(bot, userId, lang = 'id') {
     }
     kb.text(t('fsub_check_btn', lang), 'fsub_check');
 
-    await bot.api.sendMessage(
+    await api.sendMessage(
         userId,
         t('fsub_required', lang, { channels: channelList }),
         { parse_mode: 'HTML', reply_markup: kb }
