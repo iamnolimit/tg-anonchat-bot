@@ -269,7 +269,22 @@ async function handleAdminCallback(ctx) {
             [{ text: '🔗 Ubah Info Tombol', callback_data: 'adm_vip_btn' }],
             [{ text: '⬅️ Kembali', callback_data: 'adm_back' }],
         ]);
-        const text = `💎 <b>Kelola Plugin /VIP</b>\n\nJika diaktifkan, menu bawaan /vip akan diganti dengan pesan dan tombol custom dari panel ini.\n\n📝 <b>Caption:</b>\n<pre>${escapeHtml(db.getSetting('vip_custom_text') || '(Kosong)')}</pre>\n\n🔗 <b>Tombol:</b>\n<pre>${escapeHtml(db.getSetting('vip_custom_btn_text') || '(Belum Set)')} -> ${escapeHtml(db.getSetting('vip_custom_btn_link') || '-')}</pre>`;
+
+        const btnRaw = db.getSetting('vip_custom_buttons');
+        let btnPreview = '(Belum Set)';
+        if (btnRaw) {
+            try {
+                const arr = JSON.parse(btnRaw);
+                if (arr.length > 0) {
+                    btnPreview = arr.map((b, i) => `${i + 1}. ${b.text} -> ${b.url}`).join('\n');
+                }
+            } catch (e) { }
+        } else {
+            const legacyText = db.getSetting('vip_custom_btn_text');
+            if (legacyText) btnPreview = `1. ${legacyText} -> ${db.getSetting('vip_custom_btn_link')}`;
+        }
+
+        const text = `💎 <b>Kelola Plugin /VIP</b>\n\nJika diaktifkan, menu bawaan /vip akan diganti dengan pesan dan tombol custom dari panel ini.\n\n📝 <b>Caption:</b>\n<pre>${escapeHtml(db.getSetting('vip_custom_text') || '(Kosong)')}</pre>\n\n🔗 <b>Daftar Tombol:</b>\n<pre>${escapeHtml(btnPreview)}</pre>`;
         return ctx.editMessageText(text, { parse_mode: 'HTML', reply_markup: kb });
     }
 
@@ -287,7 +302,7 @@ async function handleAdminCallback(ctx) {
 
     if (data === 'adm_vip_btn') {
         ctx.session.adminAction = 'vip_btn';
-        return ctx.editMessageText('🔗 Kirim data tombol dengan format:\n<b>Nama Tombol | Link URL</b>\n\nContoh: <code>Beli VIP Disini | https://wa.me/62...</code>', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
+        return ctx.editMessageText('🔗 Kirim data tombol.\nKamu bisa membuat banyak tombol sekaligus, pisahkan dengan baris baru (ENTER).\n\nFormat:\n<b>Nama Tombol | Link URL</b>\n\nContoh 2 Tombol:\n<code>Beli via WA | https://wa.me/62...\nBeli via Gopay | https://...</code>\n\n<i>Ketik kata <b>hapus</b> untuk mengosongkan tombol.</i>', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
     }
 
     // ─── BACK ───────────────────────────────────────────────────────────────
@@ -362,20 +377,36 @@ async function handleAdminInput(ctx) {
 
     if (action === 'vip_btn') {
         const inputStr = ctx.message.text;
-        if (!inputStr || !inputStr.includes('|')) {
-            await ctx.reply('❌ Format salah. Gunakan Format: <b>Teks | Link</b>', { parse_mode: 'HTML' });
+        if (!inputStr) return true;
+
+        if (inputStr.trim().toLowerCase() === 'hapus') {
+            db.setSetting('vip_custom_buttons', '[]');
+            db.setSetting('vip_custom_btn_text', '');
+            db.setSetting('vip_custom_btn_link', '');
+            await ctx.reply('✅ <b>Semua tombol VIP berhasil dihapus/dikosongkan!</b>', { parse_mode: 'HTML' });
             return true;
         }
-        const parts = inputStr.split('|');
-        const btnText = parts[0].trim();
-        const btnLink = parts[1].trim();
-        if (!btnLink.startsWith('http')) {
-            await ctx.reply('❌ Link harus diawali http:// atau https://');
-            return true;
+
+        const lines = inputStr.split('\n').map(l => l.trim()).filter(l => l);
+        const buttons = [];
+
+        for (const line of lines) {
+            if (!line.includes('|')) {
+                await ctx.reply(`❌ Format salah pada baris: <b>${escapeHtml(line)}</b>\nPastikan formatnya: <b>Teks | Link</b>`, { parse_mode: 'HTML' });
+                return true;
+            }
+            const parts = line.split('|');
+            const btnText = parts[0].trim();
+            const btnLink = parts[1].trim();
+            if (!btnLink.startsWith('http')) {
+                await ctx.reply(`❌ Link URL harus diawali http:// atau https:// pada: <b>${escapeHtml(btnLink)}</b>`, { parse_mode: 'HTML' });
+                return true;
+            }
+            buttons.push({ text: btnText, url: btnLink });
         }
-        db.setSetting('vip_custom_btn_text', btnText);
-        db.setSetting('vip_custom_btn_link', btnLink);
-        await ctx.reply('✅ <b>Tombol VIP berhasil diubah!</b>', { parse_mode: 'HTML' });
+
+        db.setSetting('vip_custom_buttons', JSON.stringify(buttons));
+        await ctx.reply(`✅ <b>${buttons.length} Tombol VIP berhasil diubah dan disimpan!</b>`, { parse_mode: 'HTML' });
         return true;
     }
 

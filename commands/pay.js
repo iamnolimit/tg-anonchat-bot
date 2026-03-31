@@ -34,17 +34,25 @@ async function handlePay(ctx) {
 async function handleVip(ctx) {
     if (db.getSetting('vip_plugin_enabled') === '1') {
         const customText = db.getSetting('vip_custom_text') || '💎 VIP Membership';
-        const btnText = db.getSetting('vip_custom_btn_text');
-        const btnLink = db.getSetting('vip_custom_btn_link');
+        let kbObj = [];
 
-        let replyMarkup;
-        if (btnText && btnLink) {
-            replyMarkup = { inline_keyboard: [[{ text: btnText, url: btnLink }]] };
+        const btnRaw = db.getSetting('vip_custom_buttons');
+        if (btnRaw) {
+            try {
+                const arr = JSON.parse(btnRaw);
+                kbObj = arr.map(b => [{ text: b.text, url: b.url }]);
+            } catch (e) { }
+        } else {
+            const btnText = db.getSetting('vip_custom_btn_text');
+            const btnLink = db.getSetting('vip_custom_btn_link');
+            if (btnText && btnLink) {
+                kbObj.push([{ text: btnText, url: btnLink }]);
+            }
         }
 
         return ctx.reply(customText, {
             parse_mode: 'HTML',
-            reply_markup: replyMarkup
+            reply_markup: kbObj.length ? { inline_keyboard: kbObj } : undefined
         });
     }
 
