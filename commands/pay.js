@@ -32,6 +32,22 @@ async function handlePay(ctx) {
 }
 
 async function handleVip(ctx) {
+    if (db.getSetting('vip_plugin_enabled') === '1') {
+        const customText = db.getSetting('vip_custom_text') || '💎 VIP Membership';
+        const btnText = db.getSetting('vip_custom_btn_text');
+        const btnLink = db.getSetting('vip_custom_btn_link');
+
+        let replyMarkup;
+        if (btnText && btnLink) {
+            replyMarkup = { inline_keyboard: [[{ text: btnText, url: btnLink }]] };
+        }
+
+        return ctx.reply(customText, {
+            parse_mode: 'HTML',
+            reply_markup: replyMarkup
+        });
+    }
+
     if (db.getSetting('payment_enabled') === '0') {
         const lang = db.getUser(ctx.from.id)?.language || 'id';
         return ctx.reply(lang === 'id' ? '✅ Fitur premium dan VIP saat ini digratiskan!' : '✅ Premium features are currently free!');

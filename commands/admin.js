@@ -43,7 +43,10 @@ async function sendAdminPanel(ctx, isEdit = false) {
         ],
         [
             { text: `🔧 Maint: ${maintenanceEnabled ? '✅' : '❌'}`, callback_data: 'adm_maintenance' },
-            { text: '🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
+            { text: '� Plugin /VIP', callback_data: 'adm_vip_menu' }
+        ],
+        [
+            { text: '�🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
         ]
     ]);
 
@@ -256,6 +259,37 @@ async function handleAdminCallback(ctx) {
         return sendAdminPanel(ctx, true);
     }
 
+    // ─── VIP PLUGIN ─────────────────────────────────────────────────────────
+
+    if (data === 'adm_vip_menu') {
+        const enabled = db.getSetting('vip_plugin_enabled') === '1';
+        const kb = buildKeyboard([
+            [{ text: `Toggle Plugin: ${enabled ? '🟢 ON' : '🔴 OFF'}`, callback_data: 'adm_vip_toggle' }],
+            [{ text: '📝 Ubah Caption', callback_data: 'adm_vip_text' }],
+            [{ text: '🔗 Ubah Info Tombol', callback_data: 'adm_vip_btn' }],
+            [{ text: '⬅️ Kembali', callback_data: 'adm_back' }],
+        ]);
+        const text = `💎 <b>Kelola Plugin /VIP</b>\n\nJika diaktifkan, menu bawaan /vip akan diganti dengan pesan dan tombol custom dari panel ini.\n\n📝 <b>Caption:</b>\n<pre>${escapeHtml(db.getSetting('vip_custom_text') || '(Kosong)')}</pre>\n\n🔗 <b>Tombol:</b>\n<pre>${escapeHtml(db.getSetting('vip_custom_btn_text') || '(Belum Set)')} -> ${escapeHtml(db.getSetting('vip_custom_btn_link') || '-')}</pre>`;
+        return ctx.editMessageText(text, { parse_mode: 'HTML', reply_markup: kb });
+    }
+
+    if (data === 'adm_vip_toggle') {
+        const current = db.getSetting('vip_plugin_enabled') === '1';
+        db.setSetting('vip_plugin_enabled', current ? '0' : '1');
+        ctx.callbackQuery.data = 'adm_vip_menu';
+        return handleAdminCallback(ctx);
+    }
+
+    if (data === 'adm_vip_text') {
+        ctx.session.adminAction = 'vip_text';
+        return ctx.editMessageText('📝 Kirim teks / caption untuk pesan VIP:', { reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
+    }
+
+    if (data === 'adm_vip_btn') {
+        ctx.session.adminAction = 'vip_btn';
+        return ctx.editMessageText('🔗 Kirim data tombol dengan format:\n<b>Nama Tombol | Link URL</b>\n\nContoh: <code>Beli VIP Disini | https://wa.me/62...</code>', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
+    }
+
     // ─── BACK ───────────────────────────────────────────────────────────────
 
     if (data === 'adm_back') {
@@ -316,6 +350,32 @@ async function handleAdminInput(ctx) {
         if (!ctx.message.text) return true;
         db.setSetting('fsub_text', ctx.message.text);
         await ctx.reply('✅ <b>Teks FSUB berhasil diubah!</b>', { parse_mode: 'HTML' });
+        return true;
+    }
+
+    if (action === 'vip_text') {
+        if (!ctx.message.text) return true;
+        db.setSetting('vip_custom_text', ctx.message.text);
+        await ctx.reply('✅ <b>Caption VIP berhasil diubah!</b>', { parse_mode: 'HTML' });
+        return true;
+    }
+
+    if (action === 'vip_btn') {
+        const inputStr = ctx.message.text;
+        if (!inputStr || !inputStr.includes('|')) {
+            await ctx.reply('❌ Format salah. Gunakan Format: <b>Teks | Link</b>', { parse_mode: 'HTML' });
+            return true;
+        }
+        const parts = inputStr.split('|');
+        const btnText = parts[0].trim();
+        const btnLink = parts[1].trim();
+        if (!btnLink.startsWith('http')) {
+            await ctx.reply('❌ Link harus diawali http:// atau https://');
+            return true;
+        }
+        db.setSetting('vip_custom_btn_text', btnText);
+        db.setSetting('vip_custom_btn_link', btnLink);
+        await ctx.reply('✅ <b>Tombol VIP berhasil diubah!</b>', { parse_mode: 'HTML' });
         return true;
     }
 
