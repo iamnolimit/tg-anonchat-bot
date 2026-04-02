@@ -43,10 +43,11 @@ async function sendAdminPanel(ctx, isEdit = false) {
         ],
         [
             { text: `🔧 Maint: ${maintenanceEnabled ? '✅' : '❌'}`, callback_data: 'adm_maintenance' },
-            { text: '� Plugin /VIP', callback_data: 'adm_vip_menu' }
+            { text: '💎 Plugin /VIP', callback_data: 'adm_vip_menu' }
         ],
         [
-            { text: '�🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
+            { text: '📝 Ubah Teks Found', callback_data: 'adm_partner_text' },
+            { text: '🔄 Update Bot (Git Pull)', callback_data: 'adm_update' }
         ]
     ]);
 
@@ -305,6 +306,11 @@ async function handleAdminCallback(ctx) {
         return ctx.editMessageText('🔗 Kirim data tombol.\nKamu bisa membuat banyak tombol sekaligus, pisahkan dengan baris baru (ENTER).\n\nFormat:\n<b>Nama Tombol | Link URL</b>\n\nContoh 2 Tombol:\n<code>Beli via WA | https://wa.me/62...\nBeli via Gopay | https://...</code>\n\n<i>Ketik kata <b>hapus</b> untuk mengosongkan tombol.</i>', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_vip_menu' }]]) });
     }
 
+    if (data === 'adm_partner_text') {
+        ctx.session.adminAction = 'partner_text';
+        return ctx.editMessageText('📝 Kirim teks baru untuk pemberitahuan "Partner Found".\n\nSistem mendukung <b>Format HTML</b>. Gunakan <code>{bot_username}</code> jika ingin menyematkan username bot.\n\nContoh:\n<code>✅ Pasangan ditemukan!\n\nAnda terhubung secara anonim. Mulai mengobrol!\n\n/next — cari pasangan baru\n/stop — hentikan percakapan\n\nhttps://t.me/{bot_username}</code>\n\n<i>Ketik kata <b>hapus</b> untuk mereset ke teks bawaan sistem.</i>', { parse_mode: 'HTML', reply_markup: buildKeyboard([[{ text: '⬅️ Kembali', callback_data: 'adm_back' }]]) });
+    }
+
     // ─── BACK ───────────────────────────────────────────────────────────────
 
     if (data === 'adm_back') {
@@ -407,6 +413,19 @@ async function handleAdminInput(ctx) {
 
         db.setSetting('vip_custom_buttons', JSON.stringify(buttons));
         await ctx.reply(`✅ <b>${buttons.length} Tombol VIP berhasil diubah dan disimpan!</b>`, { parse_mode: 'HTML' });
+        return true;
+    }
+
+    if (action === 'partner_text') {
+        const inputStr = ctx.message.text;
+        if (!inputStr) return true;
+        if (inputStr.trim().toLowerCase() === 'hapus') {
+            db.setSetting('partner_found_text', '');
+            await ctx.reply('✅ <b>Teks Partner Found direset ke bawaan sistem!</b>', { parse_mode: 'HTML' });
+            return true;
+        }
+        db.setSetting('partner_found_text', inputStr);
+        await ctx.reply('✅ <b>Teks Partner Found berhasil diubah!</b>', { parse_mode: 'HTML' });
         return true;
     }
 

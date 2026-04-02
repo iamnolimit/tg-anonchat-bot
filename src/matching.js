@@ -90,15 +90,21 @@ async function runMatchmaking(api) {
                     .catch(err => console.error('[API Error VIP a]', err.message));
             }
 
+            let customText = db.getSetting('partner_found_text');
+            const getFoundText = (lang) => {
+                if (customText) return customText.replace(/\{bot_username\}/g, config.BOT_USERNAME);
+                return t('partner_found', lang, { bot_username: config.BOT_USERNAME });
+            };
+
             await Promise.all([
                 api.sendMessage(
                     a.user_id,
-                    t('partner_found', aLang, { bot_username: config.BOT_USERNAME }),
+                    getFoundText(aLang),
                     { parse_mode: 'HTML', reply_markup: getChatKeyboard(aLang) }
                 ).catch(err => console.error('[API Error match a]', err.message)),
                 api.sendMessage(
                     b.user_id,
-                    t('partner_found', bLang, { bot_username: config.BOT_USERNAME }),
+                    getFoundText(bLang),
                     { parse_mode: 'HTML', reply_markup: getChatKeyboard(bLang) }
                 ).catch(err => console.error('[API Error match b]', err.message)),
             ]);
