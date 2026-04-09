@@ -16,8 +16,14 @@ fi
 echo "[2/4] Menarik update terbaru dari repository..."
 git pull
 
-echo "[3/4] Menginstall dependencies npm..."
-npm install
+echo "[3/4] Auto install/update dependensi (node_modules)..."
+if [ ! -d "node_modules" ]; then
+    echo "Folder node_modules tidak ditemukan. Melakukan instalasi awal..."
+    npm install
+else
+    echo "Mengecek dan memperbarui dependensi npm..."
+    npm install
+fi
 
 echo "[4/4] Menjalankan Bot..."
 node src/bot.js
