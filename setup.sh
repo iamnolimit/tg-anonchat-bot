@@ -3,11 +3,21 @@ echo "======================================"
 echo "      AnonChat Bot - Setup Script     "
 echo "======================================"
 
-echo "[1/3] Merarik update terbaru dari repository..."
+echo "[1/4] Menginstall atau memperbarui Node.js (v20)..."
+if command -v apt-get >/dev/null; then
+    sudo apt-get update
+    sudo apt-get install -y curl
+    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+else
+    echo "Peringatan: Script ini menggunakan 'apt-get' yang mungkin tidak tersedia di OS ini."
+fi
+
+echo "[2/4] Menarik update terbaru dari repository..."
 git pull
 
-echo "[2/3] Menginstall dependencies npm..."
+echo "[3/4] Menginstall dependencies npm..."
 npm install
 
-echo "[3/3] Menjalankan Bot..."
+echo "[4/4] Menjalankan Bot..."
 node src/bot.js
