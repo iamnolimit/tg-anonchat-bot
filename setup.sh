@@ -5,10 +5,11 @@ echo "======================================"
 
 echo "[1/4] Menginstall atau memperbarui Node.js (v20)..."
 if command -v apt-get >/dev/null; then
-    sudo apt-get update
-    sudo apt-get install -y curl
+    export DEBIAN_FRONTEND=noninteractive
+    sudo -E apt-get update
+    sudo -E apt-get install -y curl
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+    sudo -E apt-get install -y nodejs
 else
     echo "Peringatan: Script ini menggunakan 'apt-get' yang mungkin tidak tersedia di OS ini."
 fi
