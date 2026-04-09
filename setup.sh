@@ -8,6 +8,10 @@ if command -v apt-get >/dev/null; then
     export DEBIAN_FRONTEND=noninteractive
     sudo -E apt-get update
     sudo -E apt-get install -y curl
+    
+    # Menghapus instalasi Node.js versi lama yang menyebabkan konflik
+    sudo -E apt-get remove -y libnode-dev nodejs-doc nodejs nodejs-legacy || true
+    
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
     sudo -E apt-get install -y nodejs
 else
