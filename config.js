@@ -5,7 +5,7 @@ const config = {
   BOT_USERNAME: process.env.BOT_USERNAME || '',
   ADMIN_IDS: (process.env.ADMIN_IDS || '')
     .split(',')
-    .map((id) => parseInt(id.trim(), 10))
+    .map((id) => id.trim())
     .filter(Boolean),
   LOG_GROUP_ID: parseInt(process.env.LOG_GROUP_ID, 10) || null,
   PAYSUPPORT_LINK: process.env.PAYSUPPORT_LINK || 'https://t.me/yoursupport',

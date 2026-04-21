@@ -7,7 +7,7 @@ const config = require('../config');
 const fetch = require('node-fetch') || global.fetch; // Use native fetch if available
 
 function isAdmin(userId) {
-    return config.ADMIN_IDS.includes(userId);
+    return config.ADMIN_IDS.includes(String(userId));
 }
 
 // ─── Admin panel entry ────────────────────────────────────────────────────────
